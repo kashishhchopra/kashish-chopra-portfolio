@@ -1,5 +1,9 @@
 /**
- * Portfolio Assistant backend — Vercel Edge Function.
+ * Portfolio Assistant backend — Vercel Function (Node.js runtime).
+ *
+ * Node, not Edge: the Anthropic SDK imports node:fs and node:path, which the
+ * Edge runtime cannot provide — an Edge build fails outright with
+ * "referencing unsupported modules". Streaming works the same on either.
  *
  * Runs server-side so the Anthropic API key never reaches the browser. The
  * frontend sends the question, the recent turns, and the portfolio dossier it
@@ -21,8 +25,6 @@
  */
 
 import Anthropic from "@anthropic-ai/sdk";
-
-export const config = { runtime: "edge" };
 
 /**
  * Claude Opus 5 at low effort: the dossier reasoning this needs is well within
@@ -156,7 +158,7 @@ function sanitizeHistory(value: unknown): { role: "user" | "assistant"; content:
   return turns;
 }
 
-export default async function handler(req: Request): Promise<Response> {
+async function handler(req: Request): Promise<Response> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
 
   if (req.method === "GET") {
@@ -273,3 +275,8 @@ export default async function handler(req: Request): Promise<Response> {
     },
   });
 }
+
+// Vercel's Node.js runtime dispatches /api files through a `fetch` Web Standard
+// export — the bare `export default function handler(Request)` shape is the Edge
+// signature and isn't picked up here.
+export default { fetch: handler };

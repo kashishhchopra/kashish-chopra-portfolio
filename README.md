@@ -202,8 +202,9 @@ Server-side only — set these in your host's dashboard, **never** with a `VITE_
 
 ### The assistant
 
-[`api/assistant.ts`](api/assistant.ts) is a Vercel Edge Function that holds the Claude API
-key server-side — it never enters the browser bundle. Set `ANTHROPIC_API_KEY` in the Vercel
+[`api/assistant.ts`](api/assistant.ts) is a Vercel Function on the **Node.js runtime** (the
+Anthropic SDK imports `node:fs`/`node:path`, which the Edge runtime can't provide) that holds
+the Claude API key server-side — it never enters the browser bundle. Set `ANTHROPIC_API_KEY` in the Vercel
 project's environment variables and the assistant is live; there is nothing else to wire.
 
 How it works:

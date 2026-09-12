@@ -1,0 +1,210 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  --hud-line: rgba(56, 189, 248, 0.14);
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  /* Base text is `ink` (#FAFAFA). Components step down to zinc-300/400 for
+     supporting copy — that hierarchy is what keeps a dark page readable. */
+  @apply bg-void text-ink font-sans antialiased;
+  background-image:
+    radial-gradient(1200px 600px at 80% -10%, rgba(37, 99, 235, 0.08), transparent 60%),
+    radial-gradient(900px 500px at 0% 10%, rgba(56, 189, 248, 0.05), transparent 55%);
+  min-height: 100vh;
+  /* Slightly tighter tracking on the body face; Inter is designed for it and
+     it makes long paragraphs read denser without shrinking the size. */
+  letter-spacing: -0.006em;
+  text-rendering: optimizeLegibility;
+}
+
+/* Display type: tighten as it gets bigger, the way a typesetter would. */
+h1 {
+  letter-spacing: -0.03em;
+}
+h2,
+h3 {
+  letter-spacing: -0.018em;
+}
+
+::selection {
+  background: rgba(56, 189, 248, 0.28);
+  color: #FAFAFA;
+}
+
+/* Respect reduced motion globally as a safety net. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Accessible focus ring for keyboard users */
+:focus-visible {
+  outline: 2px solid #38BDF8;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #09090B;
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(#1D4ED8, #0EA5E9);
+  border-radius: 20px;
+  border: 2px solid #09090B;
+}
+
+@layer components {
+  /**
+   * Glass panel.
+   * Three layers make it read as a physical surface rather than a grey box:
+   * a translucent fill, a sheen that catches light on the top edge only, and
+   * a hairline that is brighter at the top than the bottom.
+   */
+  .glass-panel {
+    @apply relative rounded-2xl border border-white/[0.09] bg-white/[0.028] shadow-lift backdrop-blur-md;
+    background-image: theme("backgroundImage.panel-sheen");
+    transition:
+      border-color 0.25s ease,
+      box-shadow 0.35s ease,
+      transform 0.35s cubic-bezier(0.2, 0.7, 0.3, 1);
+  }
+  /* The lit top edge. Sits above the fill, under the content. */
+  .glass-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 1px;
+    border-radius: inherit;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.22) 22%,
+      rgba(255, 255, 255, 0.28) 50%,
+      rgba(255, 255, 255, 0.22) 78%,
+      transparent
+    );
+    pointer-events: none;
+  }
+
+  /* Opt-in hover behaviour for panels that are actually interactive. */
+  .panel-interactive:hover {
+    @apply -translate-y-0.5 border-secondary/25 shadow-lift-glow;
+  }
+
+  .hud-border {
+    @apply border border-secondary/25;
+  }
+  .terminal-text {
+    @apply font-mono text-secondary-soft;
+  }
+  .section-eyebrow {
+    @apply font-mono text-xs uppercase tracking-[0.3em] text-secondary/80;
+  }
+
+  /* Headline treatment: a bright core with a cool falloff, so large type has
+     dimension instead of sitting flat on the background. */
+  .text-display {
+    @apply bg-gradient-to-br from-white via-zinc-100 to-zinc-400 bg-clip-text text-transparent;
+  }
+  .text-accent-gradient {
+    @apply bg-gradient-to-r from-secondary-soft via-secondary to-accent bg-clip-text text-transparent;
+  }
+
+  /* A hairline that fades out at both ends — used to close section headers. */
+  .rule-accent {
+    height: 1px;
+    background: theme("backgroundImage.accent-line");
+  }
+
+  .btn-hud {
+    @apply relative inline-flex items-center gap-2 overflow-hidden rounded-lg border border-secondary/40
+      bg-gradient-to-b from-secondary/[0.18] to-secondary/[0.08] px-4 py-2 font-medium text-secondary-soft
+      shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] transition-all duration-200
+      hover:border-secondary/60 hover:from-secondary/25 hover:to-secondary/[0.12] hover:shadow-glow
+      focus-visible:border-secondary/60 active:translate-y-px;
+  }
+  /* Light sweeps across the button on hover — one pass, not a loop. */
+  .btn-hud::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.18), transparent 70%);
+    transform: translateX(-120%);
+    pointer-events: none;
+  }
+  .btn-hud:hover::after {
+    @apply animate-shimmer;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center gap-2 rounded-lg border border-white/[0.14] bg-white/[0.02] px-4 py-2
+      font-medium text-zinc-200 transition-all duration-200 hover:border-white/30 hover:bg-white/[0.06]
+      active:translate-y-px;
+  }
+
+  .chip {
+    @apply inline-flex items-center rounded-full border border-white/[0.09] bg-white/[0.045] px-3 py-1
+      font-mono text-xs text-zinc-300 transition-colors;
+  }
+
+  /* Small uppercase label used above panel content. */
+  .label-hud {
+    @apply font-mono text-[11px] uppercase tracking-[0.18em] text-zinc-400;
+  }
+}
+
+/* Film grain. A single tiled SVG turbulence, no network request, no repaint —
+   it stops the large dark gradients from banding on cheap panels. */
+.grain-overlay {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.42'/%3E%3C/svg%3E");
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glass-panel,
+  .btn-hud,
+  .btn-ghost {
+    transition: none !important;
+  }
+  .panel-interactive:hover {
+    transform: none !important;
+  }
+}
+
+/* Skip link */
+.skip-link {
+  position: absolute;
+  left: -999px;
+  top: 0;
+  z-index: 100;
+  padding: 0.6rem 1rem;
+  background: #38BDF8;
+  color: #09090B;
+  font-weight: 700;
+  border-radius: 0 0 8px 0;
+}
+.skip-link:focus {
+  left: 0;
+}

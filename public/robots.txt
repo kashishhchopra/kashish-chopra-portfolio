@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# Set SITE_URL before building to emit a sitemap:
+#   SITE_URL=https://your-domain.com npm run build

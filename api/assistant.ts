@@ -159,10 +159,19 @@ function sanitizeHistory(value: unknown): { role: "user" | "assistant"; content:
 }
 
 async function handler(req: Request): Promise<Response> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.ANTHROPIC_API_KEY?.trim();
 
   if (req.method === "GET") {
-    return json({ configured: !!apiKey });
+    // `reason` distinguishes "never set" from "set but blank" — the two look
+    // identical from the dashboard once a Secret value is hidden, and they have
+    // different fixes. No part of the value is exposed.
+    const reason =
+      apiKey === undefined
+        ? "ANTHROPIC_API_KEY is not present in this environment"
+        : apiKey.trim() === ""
+          ? "ANTHROPIC_API_KEY is present but empty"
+          : undefined;
+    return json(reason ? { configured: false, reason } : { configured: true });
   }
 
   if (req.method !== "POST") {

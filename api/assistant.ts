@@ -270,13 +270,17 @@ async function handler(req: Request): Promise<Response> {
         // misconfigured deployment is diagnosable without reading the logs.
         // Neither carries the key or any request content.
         console.error("Assistant handler failed", err);
-        const e = err as { status?: number; error?: { error?: { type?: string; message?: string } } };
+        // `status` and `code` name the failure mode (authentication_error,
+        // invalid_request_error, rate_limit_error…) so a misconfigured deployment
+        // stays diagnosable from outside. The provider's message is deliberately
+        // NOT forwarded: it can describe the account's billing state, which is
+        // nobody's business on a public endpoint. It's in the log above.
+        const e = err as { status?: number; error?: { error?: { type?: string } } };
         writeEvent(controller, {
           type: "error",
           error: "Could not reach the assistant right now.",
           status: e?.status,
           code: e?.error?.error?.type,
-          detail: e?.error?.error?.message?.slice(0, 200),
         });
         controller.close();
       }

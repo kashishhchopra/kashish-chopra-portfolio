@@ -622,8 +622,9 @@ export async function askAssistant(
   // Slash commands always route locally & instantly.
   if (question.trim().startsWith("/")) return localReply(question);
 
-  // Don't upload the dossier just to be told the key isn't set. The probe is
-  // cached, so this costs one GET per session at most.
+  // Don't upload the dossier just to be told the key isn't set, and don't
+  // re-attempt an endpoint that already failed this session.
+  if (apiFailed) return localReply(question);
   if (!(await assistantConfigured())) return localReply(question);
 
   let text = "";
@@ -681,7 +682,9 @@ export async function askAssistant(
     if (text.trim()) {
       return { text: text.trim(), actions: actions?.length ? actions : undefined, source: "api" };
     }
+    apiFailed = true; // Reached the endpoint but got no answer out of it.
   } catch {
+    apiFailed = true;
     // If the stream died after the visitor already saw part of an answer,
     // keep it — swapping it for a different local answer mid-read is worse
     // than an answer that stops short.
@@ -699,6 +702,20 @@ export async function askAssistant(
  * claiming intelligence it doesn't currently have. Cached for the session.
  */
 let statusPromise: Promise<boolean> | null = null;
+
+/**
+ * Set once the proxy has actually failed a question — a missing key, an unpaid
+ * account, an outage. `configured: true` only means a key is present, not that
+ * a call will succeed, and without this every later question would spend a
+ * multi-second round trip discovering the same failure before falling back.
+ * Cleared by a page reload, so a transient blip costs one session, not forever.
+ */
+let apiFailed = false;
+
+/** Has a live answer actually been served this session? */
+export function assistantLive(): boolean {
+  return !apiFailed;
+}
 
 export function assistantConfigured(): Promise<boolean> {
   // A third-party proxy is assumed live — it owes us no GET handler, and

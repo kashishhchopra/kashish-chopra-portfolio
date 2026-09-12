@@ -15,6 +15,7 @@ import {
 import {
   askAssistant,
   assistantConfigured,
+  assistantLive,
   suggestedQuestions,
   type AssistantAction,
   type AssistantReply,
@@ -108,6 +109,10 @@ export default function PortfolioAssistant() {
           source: "local",
         };
       }
+
+      // A key being present isn't the same as an answer arriving. If the call
+      // failed and the local responder took over, stop advertising otherwise.
+      if (reply.source === "local") setAiLive(assistantLive());
 
       if (opened) {
         // Streamed: the text is already on screen. Settle it to the final value

@@ -264,11 +264,19 @@ async function handler(req: Request): Promise<Response> {
 
         controller.close();
       } catch (err) {
-        // Log the provider's reason server-side; don't leak it to the browser.
+        // Full detail server-side; the browser gets the visitor-facing text plus
+        // the provider's error class. `status` and `code` name the failure mode
+        // (authentication_error, invalid_request_error, rate_limit_error…) so a
+        // misconfigured deployment is diagnosable without reading the logs.
+        // Neither carries the key or any request content.
         console.error("Assistant handler failed", err);
+        const e = err as { status?: number; error?: { error?: { type?: string; message?: string } } };
         writeEvent(controller, {
           type: "error",
           error: "Could not reach the assistant right now.",
+          status: e?.status,
+          code: e?.error?.error?.type,
+          detail: e?.error?.error?.message?.slice(0, 200),
         });
         controller.close();
       }

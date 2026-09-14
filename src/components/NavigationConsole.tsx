@@ -5,6 +5,7 @@ import { navItems } from "@/lib/nav";
 import { portfolio } from "@/data/portfolio";
 import { useUI } from "@/ui-context";
 import ModeToggle from "./ModeToggle";
+import ThemeToggle from "./ThemeToggle";
 
 /**
  * Top navigation "console". Shows the display name as a logo, the module
@@ -61,7 +62,7 @@ export default function NavigationConsole() {
                           pill — lighter, and it reads as a console tab. */}
                       {isActive && (
                         <span
-                          className="absolute inset-x-2 -bottom-[13px] h-px bg-secondary shadow-[0_0_10px_rgba(56,189,248,0.9)]"
+                          className="absolute inset-x-2 -bottom-[13px] h-px bg-secondary shadow-[0_0_10px_rgb(var(--c-secondary)/0.9)]"
                           aria-hidden
                         />
                       )}
@@ -73,8 +74,9 @@ export default function NavigationConsole() {
         </ul>
 
         <div className="flex items-center gap-2">
-          <div className="hidden sm:block">
+          <div className="hidden items-center gap-2 sm:flex">
             <ModeToggle compact />
+            <ThemeToggle />
           </div>
 
           <button
@@ -105,8 +107,9 @@ export default function NavigationConsole() {
       {open && (
         <div id="mobile-menu" className="border-t border-white/10 bg-void lg:hidden">
           <div className="mx-auto max-w-6xl px-4 py-3">
-            <div className="mb-3 sm:hidden">
+            <div className="mb-3 flex items-center gap-2 sm:hidden">
               <ModeToggle />
+              <ThemeToggle />
             </div>
             <ul className="grid grid-cols-2 gap-1">
               {navItems.map((n) => {

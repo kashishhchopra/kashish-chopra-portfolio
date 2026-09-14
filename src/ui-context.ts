@@ -12,11 +12,21 @@ import { createContext, useContext } from "react";
  */
 export type AudienceMode = "recruiter" | "developer";
 
+/**
+ * Colour theme. `light` is beige/black (the site's primary look); `dark` is
+ * black/white. Purely visual — unlike AudienceMode, nothing reads this to
+ * decide what content to show.
+ */
+export type Theme = "light" | "dark";
+
 export interface UIContextValue {
   replayBoot: () => void;
   mode: AudienceMode;
   setMode: (mode: AudienceMode) => void;
   toggleMode: () => void;
+  theme: Theme;
+  setTheme: (theme: Theme) => void;
+  toggleTheme: () => void;
   paletteOpen: boolean;
   openPalette: (initialQuery?: string) => void;
   closePalette: () => void;
@@ -35,6 +45,9 @@ export const UIContext = createContext<UIContextValue>({
   mode: "recruiter",
   setMode: () => {},
   toggleMode: () => {},
+  theme: "light",
+  setTheme: () => {},
+  toggleTheme: () => {},
   paletteOpen: false,
   openPalette: () => {},
   closePalette: () => {},

@@ -2,9 +2,198 @@
 @tailwind components;
 @tailwind utilities;
 
+/**
+ * Theme tokens — "R G B" triplets so Tailwind's `rgb(var(--x) / <alpha-value>)`
+ * pattern keeps opacity modifiers working (`bg-white/10`, `border-secondary/40`).
+ *
+ * `:root` is the DARK theme (black/white) — the site's original look, and the
+ * one a visitor with JavaScript disabled always gets, since nothing here
+ * depends on script to render correctly. `[data-theme="light"]` overrides it
+ * into the beige/black theme, applied by an inline script in index.html
+ * before paint (see there) and toggled at runtime by useTheme.
+ *
+ * `--c-white` and the `--c-zinc-*` ramp are the two tokens doing the heavy
+ * lifting: they back Tailwind's OWN `white` and `zinc` colour scales (see
+ * tailwind.config.js), so the ~350 existing `text-zinc-400` / `border-white/10`
+ * classes across the app become theme-aware with no component edits — each
+ * one keeps expressing the same hierarchy (brightest → dimmest) on whichever
+ * background it lands on. `--c-black` is deliberately NOT theme-reactive: its
+ * one caller (the boot sequence's terminal panel) wants a literal dark
+ * terminal in both themes, not an inverted one.
+ */
 :root {
   color-scheme: dark;
+
+  --c-void: 9 9 11; /* page background */
+  --c-panel: 24 24 27; /* elevated surface */
+  --c-ink: 250 250 250; /* primary text */
+  --c-black: 9 9 11; /* literal dark constant — scrims, the boot terminal */
+
+  --c-white: 255 255 255; /* the "brightest / most-contrast" token */
+  --c-zinc-100: 244 244 245;
+  --c-zinc-200: 228 228 231;
+  --c-zinc-300: 212 212 216;
+  --c-zinc-400: 161 161 170;
+  --c-zinc-500: 113 113 122;
+  --c-zinc-600: 82 82 91;
+
+  /* One accent hue, two steps apiece. `-soft` is whichever step reads best as
+     small text on THIS theme's background — the lighter step on black, the
+     darker step on beige (see tailwind.config.js's colour comment). */
+  --c-accent: 37 99 235; /* #2563EB */
+  --c-accent-soft: 96 165 250; /* #60A5FA */
+  --c-secondary: 56 189 248; /* #38BDF8 */
+  --c-secondary-soft: 125 211 252; /* #7DD3FC */
+
+  /* Status colours — kept semantic, darkened only where a theme needs it for
+     contrast. Dark theme is unchanged from the site's original values. */
+  --c-emerald-200: 167 243 208;
+  --c-emerald-300: 110 231 183;
+  --c-emerald-400: 52 211 153;
+  --c-amber-300: 252 211 77;
+  --c-amber-400: 251 191 36;
+  --c-rose-300: 253 164 175;
+  --c-rose-400: 251 113 133;
+  --c-red-500: 239 68 68;
+
+  --c-shadow: 0 0 0; /* drop-shadow base — stays black in both themes */
   --hud-line: rgba(56, 189, 248, 0.14);
+
+  /**
+   * Architecture-diagram node kinds. Six categorical hues, each with a wash
+   * colour (fill/stroke) and a solid text colour — see ArchitectureDiagram.tsx,
+   * which also varies the wash's ALPHA per theme (a 12% tint reads fine on
+   * black and nearly vanishes on beige; the colour alone can't fix that).
+   */
+  --c-diag-input: 56 189 248;
+  --c-diag-input-text: 125 211 252;
+  --c-diag-process: 161 161 170;
+  --c-diag-process-text: 228 228 231;
+  --c-diag-model: 37 99 235;
+  --c-diag-model-text: 147 197 253;
+  --c-diag-store: 99 102 241;
+  --c-diag-store-text: 165 180 252;
+  --c-diag-output: 16 185 129;
+  --c-diag-output-text: 110 231 183;
+  --c-diag-external: 245 158 11;
+  --c-diag-external-text: 252 211 77;
+}
+
+/**
+ * `[data-theme="dark"]` — an explicit re-declaration of the same values as
+ * the unscoped `:root` block above. Exists so a component can force itself
+ * back to the dark palette while nested inside a light-themed page (see
+ * BootSequence.tsx, which carries this attribute so the boot terminal reads
+ * the same in both site themes). Keep this in sync with `:root` above.
+ */
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --c-void: 9 9 11;
+  --c-panel: 24 24 27;
+  --c-ink: 250 250 250;
+  --c-black: 9 9 11;
+
+  --c-white: 255 255 255;
+  --c-zinc-100: 244 244 245;
+  --c-zinc-200: 228 228 231;
+  --c-zinc-300: 212 212 216;
+  --c-zinc-400: 161 161 170;
+  --c-zinc-500: 113 113 122;
+  --c-zinc-600: 82 82 91;
+
+  --c-accent: 37 99 235;
+  --c-accent-soft: 96 165 250;
+  --c-secondary: 56 189 248;
+  --c-secondary-soft: 125 211 252;
+
+  --c-emerald-200: 167 243 208;
+  --c-emerald-300: 110 231 183;
+  --c-emerald-400: 52 211 153;
+  --c-amber-300: 252 211 77;
+  --c-amber-400: 251 191 36;
+  --c-rose-300: 253 164 175;
+  --c-rose-400: 251 113 133;
+  --c-red-500: 239 68 68;
+
+  --c-shadow: 0 0 0;
+  --hud-line: rgba(56, 189, 248, 0.14);
+
+  --c-diag-input: 56 189 248;
+  --c-diag-input-text: 125 211 252;
+  --c-diag-process: 161 161 170;
+  --c-diag-process-text: 228 228 231;
+  --c-diag-model: 37 99 235;
+  --c-diag-model-text: 147 197 253;
+  --c-diag-store: 99 102 241;
+  --c-diag-store-text: 165 180 252;
+  --c-diag-output: 16 185 129;
+  --c-diag-output-text: 110 231 183;
+  --c-diag-external: 245 158 11;
+  --c-diag-external-text: 252 211 77;
+}
+
+/**
+ * Light theme — beige page, near-black ink, one indigo-blue accent.
+ * The zinc ramp is inverted in role, not just value: zinc-100 (brightest on
+ * black) becomes the darkest, most emphatic step here, so every component
+ * that reaches for "the strong one" or "the quiet one" still gets it.
+ */
+[data-theme="light"] {
+  color-scheme: light;
+
+  --c-void: 237 230 216; /* warm beige page */
+  --c-panel: 247 243 234; /* card surface — brighter than the page, same
+                              elevation direction as the dark theme's panel */
+  --c-ink: 25 21 18; /* warm near-black */
+  --c-black: 9 9 11; /* unchanged — see the :root comment */
+
+  --c-white: 25 21 18; /* "brightest/most-contrast" now means darkest */
+  --c-zinc-100: 38 33 28;
+  --c-zinc-200: 58 51 44;
+  --c-zinc-300: 84 75 65;
+  --c-zinc-400: 120 109 96;
+  --c-zinc-500: 150 138 122;
+  --c-zinc-600: 176 163 145;
+
+  /* -soft is the darker, text-safe step here; DEFAULT is the lighter step
+     used for fills, borders and large type — the inverse of the dark theme's
+     assignment, by design (see tailwind.config.js). */
+  --c-accent: 51 78 189; /* #334EBD */
+  --c-accent-soft: 26 46 110; /* #1A2E6E */
+  --c-secondary: 37 90 178; /* #255AB2 */
+  --c-secondary-soft: 20 61 130; /* #143D82 */
+
+  --c-emerald-200: 42 166 114;
+  --c-emerald-300: 28 148 99;
+  --c-emerald-400: 15 122 79;
+  --c-amber-300: 156 107 18;
+  --c-amber-400: 138 92 10;
+  --c-rose-300: 194 69 104;
+  --c-rose-400: 176 53 91;
+  --c-red-500: 180 28 24;
+
+  --c-shadow: 60 52 40; /* a warm-tinted shadow reads better than pure black
+                            on a beige surface */
+  --hud-line: rgba(37, 67, 179, 0.12);
+
+  /* Darkened for legibility as solid text on cream — same relative hues
+     (sky → blue → indigo, neutral, green, amber) as the dark theme, so the
+     six kinds stay tellable apart. ArchitectureDiagram.tsx also raises the
+     wash alpha in this theme; colour alone won't make a 12% tint visible on
+     a light background. */
+  --c-diag-input: 3 105 161;
+  --c-diag-input-text: 8 66 99;
+  --c-diag-process: 87 79 69;
+  --c-diag-process-text: 46 40 34;
+  --c-diag-model: 29 78 216;
+  --c-diag-model-text: 20 46 130;
+  --c-diag-store: 67 56 202;
+  --c-diag-store-text: 40 32 122;
+  --c-diag-output: 4 120 87;
+  --c-diag-output-text: 6 78 56;
+  --c-diag-external: 146 64 14;
+  --c-diag-external-text: 107 46 10;
 }
 
 * {
@@ -16,17 +205,18 @@ html {
 }
 
 body {
-  /* Base text is `ink` (#FAFAFA). Components step down to zinc-300/400 for
-     supporting copy — that hierarchy is what keeps a dark page readable. */
+  /* Base text is `ink`. Components step down to zinc-300/400 for supporting
+     copy — that hierarchy is what keeps the page readable in either theme. */
   @apply bg-void text-ink font-sans antialiased;
   background-image:
-    radial-gradient(1200px 600px at 80% -10%, rgba(37, 99, 235, 0.08), transparent 60%),
-    radial-gradient(900px 500px at 0% 10%, rgba(56, 189, 248, 0.05), transparent 55%);
+    radial-gradient(1200px 600px at 80% -10%, rgb(var(--c-accent) / 0.08), transparent 60%),
+    radial-gradient(900px 500px at 0% 10%, rgb(var(--c-secondary) / 0.05), transparent 55%);
   min-height: 100vh;
   /* Slightly tighter tracking on the body face; Inter is designed for it and
      it makes long paragraphs read denser without shrinking the size. */
   letter-spacing: -0.006em;
   text-rendering: optimizeLegibility;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 /* Display type: tighten as it gets bigger, the way a typesetter would. */
@@ -39,8 +229,8 @@ h3 {
 }
 
 ::selection {
-  background: rgba(56, 189, 248, 0.28);
-  color: #FAFAFA;
+  background: rgb(var(--c-secondary) / 0.28);
+  color: rgb(var(--c-ink));
 }
 
 /* Respect reduced motion globally as a safety net. */
@@ -57,7 +247,7 @@ h3 {
 
 /* Accessible focus ring for keyboard users */
 :focus-visible {
-  outline: 2px solid #38BDF8;
+  outline: 2px solid rgb(var(--c-secondary));
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -68,12 +258,12 @@ h3 {
   height: 10px;
 }
 ::-webkit-scrollbar-track {
-  background: #09090B;
+  background: rgb(var(--c-void));
 }
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(#1D4ED8, #0EA5E9);
+  background: linear-gradient(rgb(var(--c-accent)), rgb(var(--c-secondary)));
   border-radius: 20px;
-  border: 2px solid #09090B;
+  border: 2px solid rgb(var(--c-void));
 }
 
 @layer components {
@@ -81,7 +271,9 @@ h3 {
    * Glass panel.
    * Three layers make it read as a physical surface rather than a grey box:
    * a translucent fill, a sheen that catches light on the top edge only, and
-   * a hairline that is brighter at the top than the bottom.
+   * a hairline that is brighter at the top than the bottom. All three ride
+   * the `white` token, so they read as a light-catching edge on black and a
+   * soft shaded edge on beige — the same physical idea, the correct sign.
    */
   .glass-panel {
     @apply relative rounded-2xl border border-white/[0.09] bg-white/[0.028] shadow-lift backdrop-blur-md;
@@ -89,6 +281,7 @@ h3 {
     transition:
       border-color 0.25s ease,
       box-shadow 0.35s ease,
+      background-color 0.25s ease,
       transform 0.35s cubic-bezier(0.2, 0.7, 0.3, 1);
   }
   /* The lit top edge. Sits above the fill, under the content. */
@@ -101,9 +294,9 @@ h3 {
     background: linear-gradient(
       90deg,
       transparent,
-      rgba(255, 255, 255, 0.22) 22%,
-      rgba(255, 255, 255, 0.28) 50%,
-      rgba(255, 255, 255, 0.22) 78%,
+      rgb(var(--c-white) / 0.22) 22%,
+      rgb(var(--c-white) / 0.28) 50%,
+      rgb(var(--c-white) / 0.22) 78%,
       transparent
     );
     pointer-events: none;
@@ -142,7 +335,7 @@ h3 {
   .btn-hud {
     @apply relative inline-flex items-center gap-2 overflow-hidden rounded-lg border border-secondary/40
       bg-gradient-to-b from-secondary/[0.18] to-secondary/[0.08] px-4 py-2 font-medium text-secondary-soft
-      shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] transition-all duration-200
+      shadow-[inset_0_1px_0_rgb(var(--c-white)/0.12)] transition-all duration-200
       hover:border-secondary/60 hover:from-secondary/25 hover:to-secondary/[0.12] hover:shadow-glow
       focus-visible:border-secondary/60 active:translate-y-px;
   }
@@ -151,7 +344,7 @@ h3 {
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.18), transparent 70%);
+    background: linear-gradient(100deg, transparent 30%, rgb(var(--c-white) / 0.18), transparent 70%);
     transform: translateX(-120%);
     pointer-events: none;
   }
@@ -200,8 +393,8 @@ h3 {
   top: 0;
   z-index: 100;
   padding: 0.6rem 1rem;
-  background: #38BDF8;
-  color: #09090B;
+  background: rgb(var(--c-secondary));
+  color: rgb(var(--c-void));
   font-weight: 700;
   border-radius: 0 0 8px 0;
 }

@@ -48,10 +48,10 @@ export default function GridBackground() {
 
       {/* 3 — Horizon beam */}
       <div className="absolute inset-x-0 top-0 h-px bg-accent-line opacity-70" />
-      <div className="absolute inset-x-0 -top-40 h-80 bg-[radial-gradient(ellipse_60%_100%_at_50%_100%,rgba(56,189,248,0.07),transparent_70%)]" />
+      <div className="absolute inset-x-0 -top-40 h-80 bg-[radial-gradient(ellipse_60%_100%_at_50%_100%,rgb(var(--c-secondary)/0.07),transparent_70%)]" />
 
       {/* 4 — Vignette */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_45%,rgba(9,9,11,0.55)_100%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_45%,rgb(var(--c-black)/0.55)_100%)]" />
 
       {/* 5 — Grain */}
       <div className="grain-overlay absolute inset-0 opacity-[0.16] mix-blend-overlay" />

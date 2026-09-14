@@ -4,7 +4,25 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#09090B" />
+    <meta name="theme-color" content="#EDE6D8" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#09090B" media="(prefers-color-scheme: dark)" />
+
+    <!--
+      Set the theme before any CSS renders, so a returning visitor never sees
+      a flash of the wrong one. Runs synchronously, blocking-parser style —
+      deliberately not a module or deferred script. Mirrors useTheme.ts's
+      storage key and default; keep the two in sync if either changes.
+    -->
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem("kashish-ai.theme");
+          document.documentElement.dataset.theme = stored === "dark" ? "dark" : "light";
+        } catch (e) {
+          document.documentElement.dataset.theme = "light";
+        }
+      })();
+    </script>
 
     <!-- Primary Meta -->
     <title>KASHISH'S AI — AI/ML Developer & Generative AI Explorer</title>

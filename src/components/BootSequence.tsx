@@ -76,6 +76,11 @@ export default function BootSequence({ onComplete, onSkip }: BootSequenceProps) 
 
   return (
     <motion.div
+      // Boots as a dark terminal in both site themes — a real machine's boot
+      // screen doesn't follow your desktop wallpaper. `data-theme="dark"`
+      // re-scopes every theme-reactive colour used below back to the dark
+      // palette for this subtree, regardless of what <html> is set to.
+      data-theme="dark"
       className="fixed inset-0 z-[100] flex items-center justify-center bg-void"
       initial={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -86,7 +91,7 @@ export default function BootSequence({ onComplete, onSkip }: BootSequenceProps) 
       {/* faint grid */}
       <div aria-hidden className="absolute inset-0 bg-grid-lines opacity-40" style={{ backgroundSize: "40px 40px" }} />
 
-      <div className="relative w-[min(90vw,640px)] rounded-2xl border border-secondary/20 bg-black/50 p-6 font-mono shadow-glow sm:p-8">
+      <div className="relative w-[min(90vw,640px)] rounded-2xl border border-secondary/20 bg-panel/50 p-6 font-mono shadow-glow sm:p-8">
         <div className="mb-4 flex items-center gap-2 text-xs text-zinc-500">
           <span className="h-3 w-3 rounded-full bg-red-500/70" />
           <span className="h-3 w-3 rounded-full bg-amber-400/70" />

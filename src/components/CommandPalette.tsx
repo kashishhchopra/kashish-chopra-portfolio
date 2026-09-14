@@ -19,7 +19,8 @@ const GROUP_ORDER: CommandGroup[] = ["Actions", "Navigate", "Case studies", "Mod
 export default function CommandPalette() {
   const navigate = useNavigate();
   const reduced = useReducedMotion();
-  const { paletteOpen, closePalette, openPalette, paletteQuery, setMode, replayBoot, openAssistant } = useUI();
+  const { paletteOpen, closePalette, openPalette, paletteQuery, setMode, setTheme, replayBoot, openAssistant } =
+    useUI();
 
   const [query, setQuery] = useState("");
   const [index, setIndex] = useState(0);
@@ -84,6 +85,7 @@ export default function CommandPalette() {
         closePalette();
       },
       setMode,
+      setTheme,
       replayBoot,
       openAssistant: (q) => {
         openAssistant(q);

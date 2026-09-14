@@ -15,7 +15,7 @@ export default function SectionHeader({ eyebrow, title, children }: SectionHeade
   return (
     <header className="mb-9">
       <p className="inline-flex items-center gap-2 rounded-full border border-secondary/20 bg-secondary/[0.06] px-3 py-1">
-        <span className="h-1.5 w-1.5 rounded-full bg-secondary shadow-[0_0_8px_rgba(56,189,248,0.9)]" aria-hidden />
+        <span className="h-1.5 w-1.5 rounded-full bg-secondary shadow-[0_0_8px_rgb(var(--c-secondary)/0.9)]" aria-hidden />
         <span className="font-mono text-[11px] uppercase tracking-[0.28em] text-secondary-soft">{eyebrow}</span>
       </p>
 

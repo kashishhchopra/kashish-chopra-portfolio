@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Info } from "lucide-react";
 import type { Architecture, ArchNode, ArchNodeKind } from "@/types";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { useUI } from "@/ui-context";
 
 /**
  * Interactive architecture diagram.
@@ -27,16 +28,50 @@ const PAD = 16;
  * beyond the pipeline keep functional hues: neutral for plumbing, green for
  * results, amber for anything outside the system's control.
  *
- * Every `text` value clears 4.5:1 on the #09090B background.
+ * Colour and text solidity come from CSS vars (theme-reactive — see
+ * index.css), but the wash's ALPHA does not: a 12% tint that reads as a
+ * colour on black is nearly invisible on beige, and no hue choice fixes
+ * that. So the light theme reaches for higher fill/stroke alpha as well as a
+ * darker base colour. `text` is always solid and always clears 4.5:1 on
+ * that theme's panel background.
  */
-const kindStyle: Record<ArchNodeKind, { fill: string; stroke: string; text: string; label: string }> = {
-  input: { fill: "rgba(56,189,248,0.12)", stroke: "rgba(56,189,248,0.55)", text: "#7DD3FC", label: "Input" },
-  process: { fill: "rgba(161,161,170,0.10)", stroke: "rgba(161,161,170,0.45)", text: "#E4E4E7", label: "Process" },
-  model: { fill: "rgba(37,99,235,0.18)", stroke: "rgba(37,99,235,0.70)", text: "#93C5FD", label: "Model" },
-  store: { fill: "rgba(99,102,241,0.14)", stroke: "rgba(99,102,241,0.55)", text: "#A5B4FC", label: "Store" },
-  output: { fill: "rgba(16,185,129,0.12)", stroke: "rgba(16,185,129,0.55)", text: "#6EE7B7", label: "Output" },
-  external: { fill: "rgba(245,158,11,0.12)", stroke: "rgba(245,158,11,0.55)", text: "#FCD34D", label: "External" },
+const KIND_VAR: Record<ArchNodeKind, string> = {
+  input: "--c-diag-input",
+  process: "--c-diag-process",
+  model: "--c-diag-model",
+  store: "--c-diag-store",
+  output: "--c-diag-output",
+  external: "--c-diag-external",
 };
+const KIND_LABEL: Record<ArchNodeKind, string> = {
+  input: "Input",
+  process: "Process",
+  model: "Model",
+  store: "Store",
+  output: "Output",
+  external: "External",
+};
+/** fill/stroke alpha per theme — see the comment above for why this can't
+ * live in a CSS var alongside the colour. */
+const ALPHA = {
+  dark: { fill: 0.14, stroke: 0.55 },
+  light: { fill: 0.16, stroke: 0.75 },
+} as const;
+
+function buildKindStyle(theme: "light" | "dark"): Record<ArchNodeKind, { fill: string; stroke: string; text: string; label: string }> {
+  const a = ALPHA[theme];
+  const style = {} as Record<ArchNodeKind, { fill: string; stroke: string; text: string; label: string }>;
+  (Object.keys(KIND_VAR) as ArchNodeKind[]).forEach((kind) => {
+    const v = KIND_VAR[kind];
+    style[kind] = {
+      fill: `rgb(var(${v}) / ${a.fill})`,
+      stroke: `rgb(var(${v}) / ${a.stroke})`,
+      text: `rgb(var(${v}-text))`,
+      label: KIND_LABEL[kind],
+    };
+  });
+  return style;
+}
 
 interface Placed {
   node: ArchNode;
@@ -70,8 +105,22 @@ export default function ArchitectureDiagram({
   title: string;
 }) {
   const reduced = useReducedMotion();
+  const { theme } = useUI();
   const [active, setActive] = useState<string | null>(null);
   const [pinned, setPinned] = useState<string | null>(null);
+
+  const kindStyle = useMemo(() => buildKindStyle(theme), [theme]);
+  // The "active/current" highlight — edges, arrowheads, the selected node's
+  // border — always uses the site's own accent, independent of node kind.
+  // Inactive edges reuse the neutral "process" hue at three fixed alphas
+  // (line, arrowhead, label) — these already read fine against a darker
+  // base colour in either theme, so unlike the node washes above they don't
+  // need a per-theme alpha bump.
+  const activeColor = "rgb(var(--c-secondary))";
+  const activeTextColor = "rgb(var(--c-secondary-soft))";
+  const inactiveLine = "rgb(var(--c-diag-process) / 0.5)";
+  const inactiveArrow = "rgb(var(--c-diag-process) / 0.85)";
+  const inactiveLabel = "rgb(var(--c-diag-process) / 0.9)";
 
   const current = pinned ?? active;
 
@@ -184,10 +233,10 @@ export default function ArchitectureDiagram({
         >
           <defs>
             <marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-              <path d="M 0 1 L 7 4 L 0 7 z" fill="rgba(161,161,170,0.85)" />
+              <path d="M 0 1 L 7 4 L 0 7 z" fill={inactiveArrow} />
             </marker>
             <marker id="arrow-active" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-              <path d="M 0 1 L 7 4 L 0 7 z" fill="#38BDF8" />
+              <path d="M 0 1 L 7 4 L 0 7 z" fill={activeColor} />
             </marker>
           </defs>
 
@@ -201,7 +250,7 @@ export default function ArchitectureDiagram({
                   <path
                     d={e.d}
                     fill="none"
-                    stroke={isActive ? "#38BDF8" : "rgba(161,161,170,0.5)"}
+                    stroke={isActive ? activeColor : inactiveLine}
                     strokeWidth={isActive ? 2 : 1.25}
                     strokeDasharray={e.backward ? "5 4" : undefined}
                     markerEnd={isActive ? "url(#arrow-active)" : "url(#arrow)"}
@@ -213,7 +262,7 @@ export default function ArchitectureDiagram({
                       textAnchor="middle"
                       className="font-mono"
                       fontSize="9"
-                      fill={isActive ? "#7DD3FC" : "rgba(161,161,170,0.9)"}
+                      fill={isActive ? activeTextColor : inactiveLabel}
                     >
                       {e.label}
                     </text>
@@ -256,7 +305,7 @@ export default function ArchitectureDiagram({
                   height={NODE_H}
                   rx={10}
                   fill={style.fill}
-                  stroke={isCurrent ? "#38BDF8" : style.stroke}
+                  stroke={isCurrent ? activeColor : style.stroke}
                   strokeWidth={isCurrent ? 2 : 1}
                 />
                 {/* Kind is encoded by colour and by this stripe, so the diagram

@@ -4,6 +4,7 @@ import { AnimatePresence } from "framer-motion";
 
 import { UIContext, type UIContextValue } from "./ui-context";
 import { useAudienceMode } from "@/hooks/useAudienceMode";
+import { useTheme } from "@/hooks/useTheme";
 
 import BootSequence from "@/components/BootSequence";
 import Layout from "@/components/Layout";
@@ -62,6 +63,7 @@ function RouteFallback() {
 
 export default function App() {
   const { mode, setMode, toggleMode } = useAudienceMode();
+  const { theme, setTheme, toggleTheme } = useTheme();
   // The boot screen is the site's front door: it plays on every load, so opening
   // the link always starts with the system coming up. Client-side navigation
   // doesn't remount App, so it never interrupts someone already browsing.
@@ -94,6 +96,9 @@ export default function App() {
       mode,
       setMode,
       toggleMode,
+      theme,
+      setTheme,
+      toggleTheme,
       paletteOpen,
       openPalette,
       closePalette,
@@ -108,6 +113,9 @@ export default function App() {
       mode,
       setMode,
       toggleMode,
+      theme,
+      setTheme,
+      toggleTheme,
       paletteOpen,
       openPalette,
       closePalette,

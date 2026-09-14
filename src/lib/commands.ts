@@ -9,11 +9,13 @@ import {
   Code2,
   Bot,
   ExternalLink,
+  Sun,
+  Moon,
   type LucideIcon,
 } from "lucide-react";
 import { portfolio } from "@/data/portfolio";
 import { navItems } from "@/lib/nav";
-import type { AudienceMode } from "@/ui-context";
+import type { AudienceMode, Theme } from "@/ui-context";
 
 /**
  * A single registry of everything the site can *do*, shared by the command
@@ -26,6 +28,7 @@ export type CommandGroup = "Navigate" | "Case studies" | "Actions" | "Mode" | "E
 export interface CommandContext {
   navigate: (to: string) => void;
   setMode: (mode: AudienceMode) => void;
+  setTheme: (theme: Theme) => void;
   replayBoot: () => void;
   openAssistant: (question?: string) => void;
   /** Reports transient results ("Email copied") back to the caller's UI. */
@@ -153,6 +156,30 @@ const modeCommands: Command[] = [
     run: (ctx) => {
       ctx.setMode("developer");
       ctx.notify("Developer Mode — architecture and decisions expanded");
+    },
+  },
+  {
+    id: "mode:theme-light",
+    label: "Switch to Light theme",
+    hint: "Beige and black",
+    group: "Mode",
+    icon: Sun,
+    keywords: ["colour", "color", "beige", "bright", "appearance"],
+    run: (ctx) => {
+      ctx.setTheme("light");
+      ctx.notify("Light theme — beige and black");
+    },
+  },
+  {
+    id: "mode:theme-dark",
+    label: "Switch to Dark theme",
+    hint: "Black and white",
+    group: "Mode",
+    icon: Moon,
+    keywords: ["colour", "color", "night", "appearance"],
+    run: (ctx) => {
+      ctx.setTheme("dark");
+      ctx.notify("Dark theme — black and white");
     },
   },
 ];

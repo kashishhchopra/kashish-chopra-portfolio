@@ -52,7 +52,7 @@ export default function HeroCommandCenter() {
             className="mt-5 text-[2.5rem] font-extrabold leading-[1.05] sm:text-6xl"
           >
             <span className="text-display block">Hello, I'm</span>
-            <span className="text-accent-gradient mt-1 block pb-1 drop-shadow-[0_0_28px_rgba(56,189,248,0.22)]">
+            <span className="text-accent-gradient mt-1 block pb-1 drop-shadow-[0_0_28px_rgb(var(--c-secondary)/0.22)]">
               {portfolio.identity.displayName}
             </span>
           </h1>
